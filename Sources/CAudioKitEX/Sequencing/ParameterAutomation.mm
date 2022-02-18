@@ -70,6 +70,23 @@ AURenderObserver ParameterAutomationGetRenderObserver(AUParameterAddress address
             // at the appropriate time.
             if (startTime < 0) {
                 duration += startTime;
+                
+                /// Michał change   /////////////////////////////////////////////////////////////////////
+                // Ramp has started in the past so interpolate
+                // what value we should start from now.
+                float startValue = isnan(initial) ? 1.0 : initial;
+                float a = event.rampDuration > 0 ? (event.targetValue - startValue) / event.rampDuration : 0.0;
+                float x = abs(startTime / sampleRate);
+                float volume = x * a + startValue;
+                
+                scheduleParameterBlock(AUEventSampleTimeImmediate,
+                                       0,
+                                       address,
+                                       volume);
+                
+                // startTime can't be negative so change to 'immediate'.
+                startTime = AUEventSampleTimeImmediate;
+                //////////////////////////////////////////////////////////////////////////////////////////////////
             }
 
             scheduleParameterBlock(startTime,
