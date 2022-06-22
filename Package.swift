@@ -8,7 +8,7 @@ let package = Package(
     platforms: [.macOS(.v10_13), .iOS(.v11), .tvOS(.v11)],
     products: [.library(name: "AudioKitEX", targets: ["AudioKitEX"])],
     dependencies: [
-        .package(url: "https://github.com/Moriquendi/AudioKit", .branch("main")),
+        .package(url: "https://github.com/Moriquendi/AudioKit", .branch("pompom")),
     ],
     targets: [
         .target(name: "AudioKitEX", dependencies: ["AudioKit", "CAudioKitEX"]),

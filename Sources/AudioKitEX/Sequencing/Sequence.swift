@@ -40,12 +40,9 @@ extension Array where Element == SequenceEvent {
         return self.sorted(by: { (event1:SequenceEvent, event2:SequenceEvent) -> Bool in
             let event1Beat = event1.beat
             let event2Beat = event2.beat
-            let simultaneous = (event1Beat == event2Beat) && (event1.data1 == event2.data1)
-            if isNoteOn(event1.status) && isNoteOff(event2.status) && simultaneous {
-                return false
-            }
-            if isNoteOff(event1.status) && isNoteOn(event2.status) && simultaneous {
-                return true
+            if event1Beat == event2Beat {
+                if isNoteOn(event1.status) && isNoteOff(event2.status) { return false }
+                if isNoteOff(event1.status) && isNoteOn(event2.status) { return true }
             }
             return event1Beat < event2Beat
         })
@@ -64,16 +61,18 @@ extension Array where Element == SequenceEvent {
 public struct NoteEventSequence: Equatable {
     /// Array of sequence notes
     public var notes: [SequenceNote]
-    /// Array of sequenc events
+    /// Array of sequence events
     public var events: [SequenceEvent]
+    private(set) var totalDuration: Double = 0.0
 
     /// Initialize with notes and events
     /// - Parameters:
     ///   - notes: Array of sequence notes
     ///   - events: Array of sequence events
-    public init(notes: [SequenceNote] = [], events: [SequenceEvent] = []) {
+    public init(notes: [SequenceNote] = [], events: [SequenceEvent] = [], totalDuration: Double = 0.0) {
         self.notes = notes
         self.events = events
+        self.totalDuration = totalDuration
     }
 
     /// Add a note
@@ -88,6 +87,7 @@ public struct NoteEventSequence: Equatable {
                              channel: MIDIChannel = 0,
                              position: Double,
                              duration: Double) {
+        totalDuration += duration
         var newNote = SequenceNote()
 
         newNote.noteOn.status = noteOnByte
@@ -115,7 +115,7 @@ public struct NoteEventSequence: Equatable {
         notes.removeAll { $0.noteOn.beat == position }
     }
 
-    /// Remove all occurences of a certain MIDI Note nUmber
+    /// Remove all occurrences of a certain MIDI Note nUmber
     /// - Parameter noteNumber: Note to remove
     public mutating func removeAllInstancesOf(noteNumber: MIDINoteNumber) {
         notes.removeAll { $0.noteOn.data1 == noteNumber }
