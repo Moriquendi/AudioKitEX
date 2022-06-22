@@ -1,7 +1,8 @@
 // Copyright AudioKit. All Rights Reserved. Revision History at http://github.com/AudioKit/AudioKit/
 
-#ifndef AtomicData_hpp
-#define AtomicData_hpp
+#pragma once
+
+#ifdef __cplusplus
 
 #include <atomic>
 #include <memory>
@@ -80,4 +81,4 @@ private:
     }
 };
 
-#endif /* AtomicData_hpp */
+#endif // __cplusplus
