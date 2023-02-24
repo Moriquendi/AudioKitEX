@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "AudioKit",
+        "repositoryURL": "https://github.com/Moriquendi/AudioKit",
+        "state": {
+          "branch": "pompom",
+          "revision": "ae9ac5a6ad4cc1c2e0114f64139e1270ef65e44f",
+          "version": null
+        }
+      }
+    ]
+  },
+  "version": 1
+}

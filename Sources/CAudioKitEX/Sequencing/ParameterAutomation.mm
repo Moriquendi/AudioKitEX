@@ -44,14 +44,17 @@ AURenderObserver ParameterAutomationGetRenderObserver(AUParameterAddress address
             auto event = events[index];
             double eventStartSample = event.startTime * sampleRate;
             double rampSampleDuration = event.rampDuration * sampleRate;
-            if ( !(eventStartSample + rampSampleDuration < blockStartSample) ) {
+            double eventEndSample = eventStartSample + rampSampleDuration;
+            if (eventEndSample >= blockStartSample) {
                 break;
             }
             initial = event.targetValue;
         }
+        //NSLog(@"[x]Render: %f - %f [Initial: %f][%d]", blockStartSample, blockEndSample, initial, index);
 
         // Do we have an initial value from completed events?
         if (!isnan(initial)) {
+            //NSLog(@"[x]Schedule [IMMEDIATE][%f]", initial);
             scheduleParameterBlock(AUEventSampleTimeImmediate,
                                    0,
                                    address,
@@ -62,10 +65,14 @@ AURenderObserver ParameterAutomationGetRenderObserver(AUParameterAddress address
         while (index < count) {
             auto event = events[index];
             double eventStartSample = event.startTime * sampleRate;
+            double eventEndSample = eventStartSample + event.rampDuration * sampleRate;
 
             // Is it after the current block?
-            if (eventStartSample >= blockEndSample) break;
+            if (eventStartSample >= blockEndSample) {
+                break;
+            }
 
+            //NSLog(@"[x][%d] Event: %f | %f | %f", index, event.startTime, event.rampDuration, event.targetValue);
             AUEventSampleTime startTime = eventStartSample - blockStartSample;
             AUAudioFrameCount duration = event.rampDuration * sampleRate;
 
@@ -73,14 +80,44 @@ AURenderObserver ParameterAutomationGetRenderObserver(AUParameterAddress address
             // at the appropriate time.
             if (startTime < 0) {
                 duration += startTime;
+                
+                /// Michał change   /////////////////////////////////////////////////////////////////////
+                // Ramp has started in the past so interpolate
+                // what value we should start from now.
+                float startValue;
+                if (index - 1 >= 0) {
+                    startValue = events[index - 1].targetValue;
+                } else {
+                    startValue = isnan(initial) ? 1.0 : initial;
+                }
+                float a = event.rampDuration > 0 ? (event.targetValue - startValue) / event.rampDuration : 0.0;
+                float x = abs(startTime / sampleRate);
+                float volume = x * a + startValue;
+                
+                //NSLog(@"[x] Schedule[B] [IMMEDIATE][%f]", volume);
+                scheduleParameterBlock(AUEventSampleTimeImmediate,
+                                       0,
+                                       address,
+                                       volume);
+                
+                // startTime can't be negative so change to 'immediate'.
+                startTime = AUEventSampleTimeImmediate;
+                //////////////////////////////////////////////////////////////////////////////////////////////////
             }
 
+            //NSLog(@"[x][%d]Schedule[A] [Start: %lld][Dur: %u][%f]", index, startTime, duration, event.targetValue);
             scheduleParameterBlock(startTime,
                                    duration,
                                    address,
                                    event.targetValue);
 
-            index++;
+//            index++;
+            if (eventEndSample <= blockEndSample) {
+                index++;
+                //NSLog(@"[x] Increased index to %d", index);
+            } else {
+                break;
+            }
         }
 
     };
