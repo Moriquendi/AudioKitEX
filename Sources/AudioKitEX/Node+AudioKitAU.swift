@@ -4,12 +4,21 @@ import AVFoundation
 import CAudioKitEX
 import AudioKit
 
+extension AVAudioNode {
+    var akexAUAudioUnit: AUAudioUnit {
+        if #available(macOS 13.0, iOS 11.0, tvOS 11.0, macCatalyst 13.1, visionOS 1.0, *) {
+            return auAudioUnit
+        }
+        fatalError("AUAudioUnit access requires macOS 13 or newer.")
+    }
+}
+
 /// Convenience for getting the AudioKitAU from a Node.
 extension Node {
 
     /// Audio Unit for AudioKit
     public var au: AudioKitAU {
-        guard let au = avAudioNode.auAudioUnit as? AudioKitAU else {
+        guard let au = avAudioNode.akexAUAudioUnit as? AudioKitAU else {
             fatalError("Wrong audio unit type.")
         }
         return au

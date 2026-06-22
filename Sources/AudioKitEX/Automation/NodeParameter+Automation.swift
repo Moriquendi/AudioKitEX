@@ -46,20 +46,20 @@ extension NodeParameter {
             guard let automationBaseAddress = automationPtr.baseAddress else { return }
             
             guard let observer = ParameterAutomationGetRenderObserver(parameter.address,
-                                                                      avAudioNode.auAudioUnit.scheduleParameterBlock,
+                                                                      avAudioNode.akexAUAudioUnit.scheduleParameterBlock,
                                                                       Double(Settings.sampleRate),
                                                                       Double(lastTime.sampleTime),
                                                                       automationBaseAddress,
                                                                       events.count) else { return }
             
-            renderObserverToken = avAudioNode.auAudioUnit.token(byAddingRenderObserver: observer)
+            renderObserverToken = avAudioNode.akexAUAudioUnit.token(byAddingRenderObserver: observer)
         }
     }
 
     /// Stop automation
     public func stopAutomation() {
         if let token = renderObserverToken {
-            avAudioNode.auAudioUnit.removeRenderObserver(token)
+            avAudioNode.akexAUAudioUnit.removeRenderObserver(token)
         }
     }
 
